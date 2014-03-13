@@ -32,11 +32,3 @@ packet = salesforce_oauth_request.login(username=username,
 print "Access token: %s" % packet['access_token']
 print "Refresh token: %s" % packet['refresh_token']
 print "Instance URL: %s" % packet['instance_url']
-
-# print salesforce_oauth_request.login(
-# 	username="scottp@mobileforce.com",
-# 	password="rocket14",
-# 	client_id="3MVG9rFJvQRVOvk7dcW8zRXD4lv7ZdT638O2Ti7hrGGo2Oa7iFCoyabLryNhGv_j2x9yo0Ea6.VmqzUR6LDgD",
-# 	client_secret="7176140918132069100",
-# 	redirect_uri="https://localhost:8443/oauth/code"
-# 	)

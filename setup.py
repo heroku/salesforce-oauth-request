@@ -13,7 +13,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 packages = [
-    'salesforce-oauth-request',
+    'salesforce_oauth_request',
 ]
 
 requires = [
@@ -35,7 +35,6 @@ setup(
     url='https://github.com/heroku/salesforce-oauth-request',
     packages=packages,
     package_data={'': ['LICENSE']},
-    package_dir={'salesforce-oauth-request': 'salesforce-oauth-request'},
     include_package_data=True,
     install_requires=requires,
     license=license,
