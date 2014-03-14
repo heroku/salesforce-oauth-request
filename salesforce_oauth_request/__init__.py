@@ -1,6 +1,7 @@
 __author__ = 'spersinger'
 
 import re
+import os
 import urllib
 import requests
 import urlparse
@@ -14,6 +15,10 @@ def login(username = None,
           sandbox=False):
     base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
     auth_url = base + "/services/oauth2/authorize?"
+
+    client_id = os.environ.get('SALESFORCE_CLIENT_ID', client_id)
+    client_secret = os.environ.get('SALESFORCE_CLIENT_SECRET', client_secret)
+    redirect_uri = os.environ.get('SALESFORCE_REDIRECT_URI', redirect_uri)
 
     auth_url += urllib.urlencode([
         ("response_type", "code"), 
@@ -39,7 +44,12 @@ def login(username = None,
     code_url = base + "/services/oauth2/token"
     r = requests.post(code_url, data=data)
     if r.status_code < 300:
-        return r.json()
+        packet = r.json()
+        user_info = load_user_info(packet)
+        packet.update(user_info)
+        packet['endpoint'] = user_info['urls']['partner']
+
+        return packet
     else:
         return r.text
 
@@ -85,3 +95,14 @@ def oauth_flow(s, oauth_url, username=None, password=None):
     assert m is not None, "Couldn't find location.href expression in page %s:\n%s" % (r3.url, r3.text)
 
     return m.group(1)
+
+def load_user_info(packet):
+    data = dict(oauth_token=packet['access_token'], format="json")
+    r = requests.post(packet['id'], data=data)
+    if r.status_code >= 300:
+        raise RuntimeError(r.text)
+    else:
+        user_info = r.json()
+        user_info['urls']['partner'] = user_info['urls']['partner'].replace('{version}', '29')
+        return user_info
+
