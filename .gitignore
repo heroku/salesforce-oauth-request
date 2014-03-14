@@ -2,3 +2,4 @@ salesforce_oauth_request.egg-info*
 */salesforce_oauth_request.egg-info/*
 build/*
 dist/*
+*.pyc

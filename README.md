@@ -32,7 +32,20 @@ print "Instance URL:  %s" + result['instance_url']
 
 # Now use access_token, instance_url for REST, SOAP, or BULK API access.
 ```
+## Options
 
+```
+cache_session=True/False - default False
+```
+
+Pass the option `cache_session=true` to save the access token to `~.sf_oauth`
+to save time on repeated runs.
+
+```
+sandbox=True/False - default False
+```
+
+Pass `sandbox=True` to use a sandbox login.
 ## Testing
 
 You can run the simple test script like this:
