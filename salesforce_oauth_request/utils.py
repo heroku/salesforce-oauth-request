@@ -57,7 +57,7 @@ def login(username = None,
         packet = r.json()
         user_info = load_user_info(packet)
         packet.update(user_info)
-        packet['endpoint'] = user_info['urls']['partner']
+        packet['endpoint'] = "https://" + urlparse.urlparse(user_info['urls']['partner']).hostname
         if cache_session:
             write_cached_login(cache_file, username, packet)
 
