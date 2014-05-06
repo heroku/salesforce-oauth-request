@@ -10,12 +10,58 @@ import urlparse
 
 def login(username = None, 
           password = None, 
+          token = None,
           client_id = None, 
           client_secret = None, 
           redirect_uri="", 
           state="", 
           sandbox=False,
           cache_session=False):
+
+    if token:
+        r = token_login(username = username,
+                        password = password,
+                        token = token,
+                        client_id = client_id,
+                        client_secret = client_secret)
+    else:
+        r = website_login(username = username,
+                          password = password,
+                          token = token,
+                          client_id = client_id,
+                          client_secret = client_secret,
+                          redirect_uri = redirect_uri,
+                          sandbox = sandbox,
+                          cache_session = cache_session,
+                          state = state)
+
+    if r.status_code < 300:
+        packet = r.json()
+        user_info = load_user_info(packet)
+        packet.update(user_info)
+        packet['endpoint'] = user_info['urls']['partner']
+        if cache_session:
+            write_cached_login(cache_file, username, packet)
+
+        return packet
+    else:
+        return r.text
+
+
+def token_login(username = None, password = None, token = None, client_id = None, client_secret = None,
+                sandbox = None):
+    params = {'client_id': client_id,
+     'client_secret': client_secret,
+     'format': 'json',
+     'grant_type': 'password',
+     'password': password + token,
+     'username': username}
+    return requests.post('https://login.salesforce.com/services/oauth2/token', params)
+
+
+def website_login(username = None, password = None, client_id = None, client_secret = None,
+                    redirect_uri = None, sandbox = None, cache_session = None,
+                    state = None):
     base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
     auth_url = base + "/services/oauth2/authorize?"
 
@@ -52,19 +98,7 @@ def login(username = None,
                 format="json")
 
     code_url = base + "/services/oauth2/token"
-    r = requests.post(code_url, data=data)
-    if r.status_code < 300:
-        packet = r.json()
-        user_info = load_user_info(packet)
-        packet.update(user_info)
-        packet['endpoint'] = "https://" + urlparse.urlparse(user_info['urls']['partner']).hostname
-        if cache_session:
-            write_cached_login(cache_file, username, packet)
-
-        return packet
-    else:
-        return r.text
-
+    return requests.post(code_url, data=data)
 
 def oauth_flow(s, oauth_url, username=None, password=None):
     """s should be a requests session"""
