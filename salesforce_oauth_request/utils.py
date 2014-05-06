@@ -50,6 +50,10 @@ def login(username = None,
 
 def token_login(username = None, password = None, token = None, client_id = None, client_secret = None,
                 sandbox = None):
+
+    client_id = os.environ.get('SALESFORCE_CLIENT_ID', client_id)
+    client_secret = os.environ.get('SALESFORCE_CLIENT_SECRET', client_secret)
+
     params = {'client_id': client_id,
      'client_secret': client_secret,
      'format': 'json',
