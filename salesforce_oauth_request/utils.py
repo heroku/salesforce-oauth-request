@@ -18,6 +18,14 @@ def login(username = None,
           sandbox=False,
           cache_session=False):
 
+    cache_file = os.path.join(os.environ['HOME'], ".sf_oauth")
+
+    if cache_session and os.path.exists(cache_file):
+        packet = read_cached_login(cache_file, username)
+        if packet:
+            return packet
+
+
     if token:
         r = token_login(username = username,
                         password = password,
@@ -27,7 +35,6 @@ def login(username = None,
     else:
         r = website_login(username = username,
                           password = password,
-                          token = token,
                           client_id = client_id,
                           client_secret = client_secret,
                           redirect_uri = redirect_uri,
@@ -68,13 +75,6 @@ def website_login(username = None, password = None, client_id = None, client_sec
                     state = None):
     base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
     auth_url = base + "/services/oauth2/authorize?"
-
-    cache_file = os.path.join(os.environ['HOME'], ".sf_oauth")
-
-    if cache_session and os.path.exists(cache_file):
-        packet = read_cached_login(cache_file, username)
-        if packet:
-            return packet
 
     client_id = os.environ.get('SALESFORCE_CLIENT_ID', client_id)
     client_secret = os.environ.get('SALESFORCE_CLIENT_SECRET', client_secret)
