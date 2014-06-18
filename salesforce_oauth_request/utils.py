@@ -71,7 +71,8 @@ def token_login(username = None, password = None, token = None, client_id = None
      'grant_type': 'password',
      'password': password + token,
      'username': username}
-    return requests.post('https://login.salesforce.com/services/oauth2/token', params)
+    base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
+    return requests.post(base + '/services/oauth2/token', params)
 
 
 def website_login(username = None, password = None, client_id = None, client_secret = None,
@@ -93,7 +94,7 @@ def website_login(username = None, password = None, client_id = None, client_sec
         ("state", state)])
 
     s = requests.session()
-    redirect_return = oauth_flow(s, auth_url, username=username, password=password)
+    redirect_return = oauth_flow(s, auth_url, username=username, password=password, sandbox=sandbox)
     
     # parse out the session id and endpoint
     params = urlparse.parse_qs(redirect_return)
@@ -108,7 +109,7 @@ def website_login(username = None, password = None, client_id = None, client_sec
     code_url = base + "/services/oauth2/token"
     return requests.post(code_url, data=data)
 
-def oauth_flow(s, oauth_url, username=None, password=None):
+def oauth_flow(s, oauth_url, username=None, password=None, sandbox=False):
     """s should be a requests session"""
     r = s.get(oauth_url)
     if r.status_code >= 300:
@@ -137,7 +138,8 @@ def oauth_flow(s, oauth_url, username=None, password=None):
             "pw":password,
             "Login":""}
 
-    r2 = s.post("https://login.salesforce.com", data)
+    base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
+    r2 = s.post(base, data)
     m = re.search("window.location.href\s*='(.[^']+)'", r2.text)
     assert m is not None, "Couldn't find location.href expression in page %s (Username or password is wrong)" % r2.url
 
