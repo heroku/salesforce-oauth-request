@@ -18,7 +18,11 @@ def login(username = None,
           sandbox=False,
           cache_session=False):
 
-    cache_file = os.path.join(os.environ['HOME'], ".sf_oauth")
+    if os.environ.has_key('HOME'):
+        cache_file = os.path.join(os.environ['HOME'], ".sf_oauth")
+    else:
+        cache_file = os.path.join(os.environ['HOMEDRIVE'],
+            os.environ['HOMEPATH'])
 
     if cache_session and os.path.exists(cache_file):
         packet = read_cached_login(cache_file, username)
