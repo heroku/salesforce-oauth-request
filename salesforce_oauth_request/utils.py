@@ -34,6 +34,7 @@ def login(username = None,
         r = token_login(username = username,
                         password = password,
                         token = token,
+                        sandbox = sandbox,
                         client_id = client_id,
                         client_secret = client_secret)
     else:
