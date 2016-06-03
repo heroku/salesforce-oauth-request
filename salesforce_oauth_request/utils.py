@@ -8,44 +8,46 @@ import os.path
 import requests
 import urlparse
 
-def login(username = None, 
-          password = None, 
-          token = None,
-          client_id = None, 
-          client_secret = None, 
-          redirect_uri="", 
-          state="", 
+
+def login(username=None,
+          password=None,
+          token=None,
+          client_id=None,
+          client_secret=None,
+          redirect_uri="",
+          state="",
           sandbox=False,
           cache_session=False):
 
-    if os.environ.has_key('HOME'):
+    if 'HOME' in os.environ:
         cache_file = os.path.join(os.environ['HOME'], ".sf_oauth")
     else:
-        cache_file = os.path.join(os.environ['HOMEDRIVE'],
-            os.environ['HOMEPATH'])
+        cache_file = os.path.join(
+            os.environ['HOMEDRIVE'],
+            os.environ['HOMEPATH']
+        )
 
     if cache_session and os.path.exists(cache_file):
         packet = read_cached_login(cache_file, username)
         if packet:
             return packet
 
-
     if token:
-        r = token_login(username = username,
-                        password = password,
-                        token = token,
-                        sandbox = sandbox,
-                        client_id = client_id,
-                        client_secret = client_secret)
+        r = token_login(username=username,
+                        password=password,
+                        token=token,
+                        sandbox=sandbox,
+                        client_id=client_id,
+                        client_secret=client_secret)
     else:
-        r = website_login(username = username,
-                          password = password,
-                          client_id = client_id,
-                          client_secret = client_secret,
-                          redirect_uri = redirect_uri,
-                          sandbox = sandbox,
-                          cache_session = cache_session,
-                          state = state)
+        r = website_login(username=username,
+                          password=password,
+                          client_id=client_id,
+                          client_secret=client_secret,
+                          redirect_uri=redirect_uri,
+                          sandbox=sandbox,
+                          cache_session=cache_session,
+                          state=state)
 
     if r.status_code < 300:
         packet = r.json()
@@ -60,26 +62,35 @@ def login(username = None,
         return r.text
 
 
-def token_login(username = None, password = None, token = None, client_id = None, client_secret = None,
-                sandbox = None):
+def token_login(username=None, password=None, token=None, client_id=None,
+                client_secret=None, sandbox=None):
 
     client_id = os.environ.get('SALESFORCE_CLIENT_ID', client_id)
     client_secret = os.environ.get('SALESFORCE_CLIENT_SECRET', client_secret)
 
-    params = {'client_id': client_id,
-     'client_secret': client_secret,
-     'format': 'json',
-     'grant_type': 'password',
-     'password': password + token,
-     'username': username}
-    base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
+    params = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'format': 'json',
+        'grant_type': 'password',
+        'password': password + token,
+        'username': username,
+    }
+    if sandbox:
+        base = "https://test.salesforce.com"
+    else:
+        base = "https://login.salesforce.com"
     return requests.post(base + '/services/oauth2/token', params)
 
 
-def website_login(username = None, password = None, client_id = None, client_secret = None,
-                    redirect_uri = None, sandbox = None, cache_session = None,
-                    state = None):
-    base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
+def website_login(username=None, password=None, client_id=None,
+                  client_secret=None, redirect_uri=None, sandbox=None,
+                  cache_session=None, state=None):
+    if sandbox:
+        base = "https://test.salesforce.com"
+    else:
+        base = "https://login.salesforce.com"
+
     auth_url = base + "/services/oauth2/authorize?"
 
     client_id = os.environ.get('SALESFORCE_CLIENT_ID', client_id)
@@ -87,16 +98,22 @@ def website_login(username = None, password = None, client_id = None, client_sec
     redirect_uri = os.environ.get('SALESFORCE_REDIRECT_URI', redirect_uri)
 
     auth_url += urllib.urlencode([
-        ("response_type", "code"), 
-        ("display", "popup"), 
-        ("client_id",client_id),
-        ("redirect_uri", redirect_uri), 
-        ("prompt", "login"), 
+        ("response_type", "code"),
+        ("display", "popup"),
+        ("client_id", client_id),
+        ("redirect_uri", redirect_uri),
+        ("prompt", "login"),
         ("state", state)])
 
     s = requests.session()
-    redirect_return = oauth_flow(s, auth_url, username=username, password=password, sandbox=sandbox)
-    
+    redirect_return = oauth_flow(
+        s,
+        auth_url,
+        username=username,
+        password=password,
+        sandbox=sandbox,
+    )
+
     # parse out the session id and endpoint
     params = urlparse.parse_qs(redirect_return)
 
@@ -110,6 +127,7 @@ def website_login(username = None, password = None, client_id = None, client_sec
     code_url = base + "/services/oauth2/token"
     return requests.post(code_url, data=data)
 
+
 def oauth_flow(s, oauth_url, username=None, password=None, sandbox=False):
     """s should be a requests session"""
     r = s.get(oauth_url)
@@ -118,40 +136,49 @@ def oauth_flow(s, oauth_url, username=None, password=None, sandbox=False):
 
     params = urlparse.parse_qs(urlparse.urlparse(r.url).query)
 
-    data = {"un":username,
-            "width":2560,
-            "height":1440,
-            "hasRememberUn":True,
-            "startURL":params['startURL'],
-            "loginURL":"",
-            "loginType":6,
-            "useSecure":True,
-            "local":"",
-            "lt":"OAUTH",
-            "qs":"r=https%3A%2F%2Flocalhost%3A8443%2Fsalesforce%2F21",
-            "locale":"",
-            "oauth_token":"",
-            "oauth_callback":"",
-            "login":"",
-            "serverid":"",
-            "display":"popup",
-            "username":username,
-            "pw":password,
-            "Login":""}
+    data = {
+        "un": username,
+        "width": 2560,
+        "height": 1440,
+        "hasRememberUn": True,
+        "startURL": params['startURL'],
+        "loginURL": "",
+        "loginType": 6,
+        "useSecure": True,
+        "local": "",
+        "lt": "OAUTH",
+        "qs": "r=https%3A%2F%2Flocalhost%3A8443%2Fsalesforce%2F21",
+        "locale": "",
+        "oauth_token": "",
+        "oauth_callback": "",
+        "login": "",
+        "serverid": "",
+        "display": "popup",
+        "username": username,
+        "pw": password,
+        "Login": "",
+    }
 
-    base = "https://login.salesforce.com" if not sandbox else "https://test.salesforce.com"
+    if sandbox:
+        base = "https://test.salesforce.com"
+    else:
+        base = "https://login.salesforce.com"
+
     r2 = s.post(base, data)
     m = re.search("window.location.href\s*='(.[^']+)'", r2.text)
-    assert m is not None, "Couldn't find location.href expression in page %s (Username or password is wrong)" % r2.url
+    assert m is not None, ("Couldn't find location.href expression in page {} "
+                           "(Username or password is wrong)").format(r2.url)
 
-    u3 = "https://" +  urlparse.urlparse(r2.url).hostname + m.group(1)
+    u3 = "https://" + urlparse.urlparse(r2.url).hostname + m.group(1)
     r3 = s.get(u3)
 
     m = re.search("window.location.href\s*='(.[^']+)'", r3.text)
 
-    assert m is not None, "Couldn't find location.href expression in page %s:\n%s" % (r3.url, r3.text)
+    assert m is not None, ("Couldn't find location.href expression in page {}:"
+                           "\n{}").format(r3.url, r3.text)
 
     return m.group(1)
+
 
 def load_user_info(packet):
     data = dict(oauth_token=packet['access_token'], format="json")
@@ -160,11 +187,12 @@ def load_user_info(packet):
         raise RuntimeError(r.text)
     else:
         user_info = r.json()
-        user_info['urls']['partner'] = user_info['urls']['partner'].replace('{version}', '29')
+        partner = user_info['urls']['partner'].replace('{version}', '29')
+        user_info['urls']['partner'] = partner
         return user_info
 
 
-## Session caching
+# Session caching
 
 def write_cached_login(cache_file, username, packet):
     cache = _read_cached_logins(cache_file)
@@ -179,14 +207,19 @@ def read_cached_login(cache_file, username):
 
 STORE_KEY = '38jfj&*Jshs*@&18930303jaaHAHAKAzh#H('
 
+
 def _read_cached_logins(cache_file):
-    if os.path.exists(cache_file) and (time.time() - os.path.getmtime(cache_file)) < (60*60):
-        try:
-            return pickle.loads(_decode(STORE_KEY, open(cache_file).read()))
-        except IOError:
-            return {}
-    else:
-        return {}
+    if os.path.exists(cache_file):
+        age = time.time() - os.path.getmtime(cache_file)
+        if age < (60 * 60):
+            try:
+                return pickle.loads(
+                    _decode(STORE_KEY, open(cache_file).read())
+                )
+            except IOError:
+                return {}
+
+    return {}
 
 
 def _write_cached_logins(cache_file, cache):
@@ -194,7 +227,7 @@ def _write_cached_logins(cache_file, cache):
         f.write(_encode(STORE_KEY, pickle.dumps(cache)))
 
 
-# These are NOT SECURE, but at least we're not just storing plain text 
+# These are NOT SECURE, but at least we're not just storing plain text
 def _encode(key, string):
     encoded_chars = []
     for i in xrange(len(string)):
@@ -203,8 +236,8 @@ def _encode(key, string):
         encoded_chars.append(encoded_c)
     encoded_string = "".join(encoded_chars)
     return base64.urlsafe_b64encode(encoded_string)
- 
- 
+
+
 def _decode(key, string):
     decoded_chars = []
     string = base64.urlsafe_b64decode(string)
