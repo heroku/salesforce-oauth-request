@@ -18,6 +18,7 @@ packages = [
 
 requires = [
     'requests>=2.2.1',
+    'six>=1.10.0',
 ]
 
 with open('README.md') as f:

@@ -7,6 +7,7 @@ import pickle
 import os.path
 import requests
 import urlparse
+from six.moves import range
 
 
 def login(username=None,
@@ -230,7 +231,7 @@ def _write_cached_logins(cache_file, cache):
 # These are NOT SECURE, but at least we're not just storing plain text
 def _encode(key, string):
     encoded_chars = []
-    for i in xrange(len(string)):
+    for i in range(len(string)):
         key_c = key[i % len(key)]
         encoded_c = chr(ord(string[i]) + ord(key_c) % 256)
         encoded_chars.append(encoded_c)
@@ -241,7 +242,7 @@ def _encode(key, string):
 def _decode(key, string):
     decoded_chars = []
     string = base64.urlsafe_b64decode(string)
-    for i in xrange(len(string)):
+    for i in range(len(string)):
         key_c = key[i % len(key)]
         encoded_c = chr(abs(ord(string[i]) - ord(key_c) % 256))
         decoded_chars.append(encoded_c)
