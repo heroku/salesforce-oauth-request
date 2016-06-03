@@ -6,8 +6,8 @@ import urllib
 import pickle
 import os.path
 import requests
-import urlparse
 from six.moves import range
+from six.moves.urllib.parse import urlparse
 
 
 def login(username=None,
