@@ -2,36 +2,30 @@ import os
 
 import salesforce_oauth_request
 
-USERNAME = None
-PASSWORD = None
-SECURITY_TOKEN = None
-CONSUMER_KEY = None
-CONSUMER_SECRET = None
+VAR_NAMES = ['SALESFORCE_USERNAME', 'SALESFORCE_PASSWORD', 'SALESFORCE_SECURITY_TOKEN', 'SALESFORCE_CONSUMER_KEY', 'SALESFORCE_CONSUMER_SECRET']
+CREDENTIALS = {x: None for x in VAR_NAMES}
 
 
 def setup_module(module):
-    global USERNAME, PASSWORD, SECURITY_TOKEN, CONSUMER_KEY, CONSUMER_SECRET
+    global CREDENTIALS
 
     # See `.travis.yml` on how this is set up.
-    USERNAME = os.environ.get('SALESFORCE_USERNAME')
-    PASSWORD = os.environ.get('SALESFORCE_PASSWORD')
-    SECURITY_TOKEN = os.environ.get('SALESFORCE_SECURITY_TOKEN')
-    CONSUMER_KEY = os.environ.get('SALESFORCE_CONSUMER_KEY')
-    CONSUMER_SECRET = os.environ.get('SALESFORCE_CONSUMER_SECRET')
+    for name in VAR_NAMES:
+        CREDENTIALS[name] = os.environ.get(name)
 
-    environment_ready = USERNAME and PASSWORD and SECURITY_TOKEN and CONSUMER_KEY and CONSUMER_SECRET
+    environment_ready = all(x for x in CREDENTIALS.values())
     assert environment_ready, ("Make sure SALESFORCE_* environment variables pointing to "
                                "developer account are set. Check the test suite to find out more.")
 
 
 def test_login():
     packet = salesforce_oauth_request.login(
-        username=USERNAME,
-        password=PASSWORD,
-        client_id=CONSUMER_KEY,
-        client_secret=CONSUMER_SECRET,
-        token=SECURITY_TOKEN,
+        username=CREDENTIALS['SALESFORCE_USERNAME'],
+        password=CREDENTIALS['SALESFORCE_PASSWORD'],
+        client_id=CREDENTIALS['SALESFORCE_CONSUMER_KEY'],
+        client_secret=CREDENTIALS['SALESFORCE_CONSUMER_SECRET'],
+        token=CREDENTIALS['SALESFORCE_SECURITY_TOKEN'],
     )
 
     assert packet['access_token'] is not None
-    assert packet['username'] == USERNAME
+    assert packet['username'] == CREDENTIALS['SALESFORCE_USERNAME']
