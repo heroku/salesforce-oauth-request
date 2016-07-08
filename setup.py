@@ -28,7 +28,7 @@ with open('LICENSE') as f:
 
 setup(
     name='salesforce-oauth-request',
-    version='1.0.6',
+    version='1.1.0',
     description='Util package to drive Salesforce Oauth Web flow for testing.',
     long_description=readme,
     author='Scott Persinger',
