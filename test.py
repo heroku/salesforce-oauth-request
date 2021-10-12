@@ -1,6 +1,7 @@
 # Test Salesforce oauth login
 import os.path
 import pickle
+from getpass import getpass
 
 import salesforce_oauth_request
 
@@ -19,7 +20,7 @@ else:
 								  redirect_uri=redirect_uri)))
 
 username = raw_input("Username: ")
-password = raw_input("Password: ")
+password = getpass("Password: ")
 
 print "............."
 packet = salesforce_oauth_request.login(username=username,
